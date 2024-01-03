@@ -1,39 +1,39 @@
-![CI logo](https://codeinstitute.s3.amazonaws.com/fullstack/ci_logo_small.png)
+Discovering Ireland is a board game originally released by Gosling Games in 1987. Its most recent form (which this program was written with in mind) was releasd in ____, and consists of 52 towns, each connected to some of the other towns by a number of steps/blocks. The players are dealt 2 Entry/Exit cards where they must start and finish, and a designated number of Town cards, which they must visit in between the Entry/Exit cards. The player who visits all of their towns and ends at their final Entry/Exit card wins.
 
-Welcome,
+Whilst playing with my partner at home, we have often both been in the situation where (especially when playing with fewer town cards) it is unclear as to which route is the best/shortest to take. Since their is a relatively small number of towns, each connected to only a few other towns, it seemed apparent to me that oen could create a graph that represents the game: ecah town being a node, and each pair of adjacent towns connected by an edge whose weight is the number of steps between said towns. From this, one could use numpy and networkx to find the shortets path.
 
-This is the Code Institute student template for Codeanywhere. If you are using Gitpod then you need [this template](https://github.com/Code-Institute-Org/gitpod-full-template) instead.  We have preinstalled all of the tools you need to get started. It's perfectly ok to use this template as the basis for your project submissions.
+The aim was to create a program that, given a hand of cards a player is dealt, will create the shortest route possible, starting at one of the entry/exit cards, visiting all town cards, then ending on an entry/exit card.
 
-You can safely delete this README.md file, or change it for your own project. Please do read it at least once, though! It contains some important information about Codeanywhere and the extensions we use. Some of this information has been updated since the video content was created. The last update to this file was: **August 30th, 2023**
+Things to note:
+- All given shortest paths are symmetrical, i.e. if your given path is [50, 52, 51, 48, 45, 40, 39], then this is the same length as [39, 40, 45, 48, 51, 52, 50]. Since this is always the case, I fixed the entry card (the starting point) and just created one order of each of these routes.
+- Chance cards, road blocks, other players' decisions (e.g. to send you to Ballinasloe to see the horse fair) are not taken into account, as these cannot be accuratley accounted for in a simple program. It would take more than 200 lines of code to correctly predict human psychology during a game.
+- Making a U-turn (i.e. visiting a town and then returning from the direction you came from) often includes wasted movements, since you can overshoot the town by n steps, leading to you having to backtrack n steps again, adding a total of 2n steps to the path length. Compensating for this would lead to a much more in depth analysis of each route, as well as applying probability theory to the dice throws, so I chose therefore to ignore it in this case. In a future version, I may come back to this, with an extra condition along the lines of `if lists[i] = lists[i+2]`.
+- The only direct data input for this was sym, which is a csv spreadsheet with the distances between adjacent towns (since sym is symmetrical, I actually only counted half of the entries and the created a symmetrical spreadsheet from that). This drastically descreased the amount of manual counting needed to set up the corresponding graph. I manually counted 116 path lengths.
 
-## Codeanywhere Reminders
 
-To run a frontend (HTML, CSS, Javascript only) application in Codeanywhere, in the terminal, type:
 
-`python3 -m http.server`
+There are lots of commented out `print()` lines, mainly used whilst bugtesting and just to show that the variables being created were as I intended them to be (correct type, dimensions etc).
 
-A button should appear to click: _Open Preview_ or _Open Browser_.
 
-To run a frontend (HTML, CSS, Javascript only) application in Codeanywhere with no-cache, you can use this alias for `python3 -m http.server`.
 
-`http_server`
+Bugs/fixes:
+- pop(0) lead to subsequent items in lists being altered and shortened. After reading up on it, this is because I wasn't just chaning next, but I was also changing what I had set it equal to. I fixed this by making next a soft copy, meaning that popping elements from it would leave the original element unchanged.
+- Some of the less obvious paths between adjacent towns were missed when manually counting, e.g. (2,9), (32,39). This meant that resulting shortets paths given seemed odd when the code was run. After spotting these errors, I went back to sym and added in the missed edges.
+- Whilst testing, I realised that I had used non-generic integers whilst doing loops, i.e. instead of using `len(all_cards)`, I had just used `52`, since that was the number I was working with. I made sure to change this, so that a change in the setup of the game (new cards, new board layout) wouldn't lead to problems in executing the program in the future.
+- Since there are 2 of each entry/exit card, I have allowed for both cards to be the same, by changing `random.sample()` (without replacement) to `random.choices()` (with replacement). Since there are only 2 copies of each town card, this will suffice, but would need to be altered if the program would allow for several people choosing cards in a single execution. Another way to fix this would be to make each element in entry_cards appear twice. 
 
-To run a backend Python file, type `python3 app.py`, if your Python file is named `app.py` of course.
+Approach:
+- Create an adjacency matrix/table/array, containing the number of steps between all pairs of adjacent towns.
+- Use this alongside networkx to create a graph of the game board, where each node represents a town (indexed by the town number) and each edge represents the number of steps between adjacent towns.
+- From this, create another array containing the shortest path between every pair of towns on the board (including non-adjacent).
+- Randomly assign a valid dealt hand of cards.
+- Create a list of all possible routes to visit these towns (whilst abiding by the rules of the game).
+- Calculate the length of all of these possible routes.
+- Find the shortest one/s, and print both the order that the player should visit the cards in their hand, but also all inbetweeen towns, to show a more detailed route.
 
-A button should appear to click: _Open Preview_ or _Open Browser_.
-
-In Codeanywhere you have superuser security privileges by default. Therefore you do not need to use the `sudo` (superuser do) command in the bash terminal in any of the lessons.
-
-To log into the Heroku toolbelt CLI:
-
-1. Log in to your Heroku account and go to _Account Settings_ in the menu under your avatar.
-2. Scroll down to the _API Key_ and click _Reveal_
-3. Copy the key
-4. In Codeanywhere, from the terminal, run `heroku_config`
-5. Paste in your API key when asked
-
-You can now use the `heroku` CLI program - try running `heroku apps` to confirm it works. This API key is unique and private to you so do not share it. If you accidentally make it public then you can create a new one with _Regenerate API Key_.
-
----
-
-Happy coding!
+Comments/Criticisms:
+- I used the CodeInstitute template in order to make a workspace that could run python coding.
+- The output is basic, i.e. text on the console. To make it something that is simple/usable by most people, some sort of front end should be paired with it.
+- I didn't use git commit, as it was done as a project in my free time at home, so the regular structured approach I would otherwise have wasn't my priority. It was written on VSC on my home computer (Mac).
+- This program was made to be very adaptable/generic. If the board was completely moved around, a new list of towns was created, a new list of entry/exit cards was created, then all that would need to be changed would be the construction of the lists town_cards, all_cards, entry_cards and the sym spreadsheet. Although this would still take some time, it would only be a matter of minutes to count the distances on a new board of a similar size, and mere seconds to recontruct the lists of cards.
+- The largest contributor to running time is calculating the shortest route for each possible route, of which there are `number_of_town_cards!`. When playing with 12 town cards, then this is 12! = 479001600 operations, each of which is a series of many operations.
