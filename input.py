@@ -3,6 +3,7 @@ import numpy as np
 import random
 import networkx as nx
 import matplotlib.pyplot as plt
+import itertools
 from itertools import permutations
 import sys
 import array
@@ -12,7 +13,7 @@ from timeit import default_timer as timer
 start = timer()
 
 # Read the spreadsheet of paths to neighbouring towns into a pandas DataFrame
-df = pd.read_csv("sym.csv", header=None)  
+df = pd.read_csv("counted_distances.csv", header=None)  
 
 # Convert the DataFrame to a NumPy array
 edge_weights_matrix = df.values
@@ -20,7 +21,6 @@ edge_weights_matrix = df.values
 if edge_weights_matrix.shape[0] != edge_weights_matrix.shape[1]:
     print("Input data not a square spreadsheet. Please check, fix and rerun program")
 else:
-
     # Getting number of town cards from size of edge_weight_matrix
 
     # Now, edge_weights_matrix contains the numerical values from the spreadsheet as a NumPy array
@@ -38,8 +38,8 @@ else:
     town_cards = [i for i in all_cards if i not in entry_cards]
 
     # Setting range of number of town cards
-    min_town_cards = 8
-    max_town_cards = 8
+    min_town_cards = 10
+    max_town_cards = 10
 
     # Randomly choosing number of town cards from given range
     number_of_town_cards = random.randint(min_town_cards, max_town_cards);
@@ -47,20 +47,20 @@ else:
     # Assigning town cards
     assigned_town_cards = random.sample(town_cards, number_of_town_cards);
     # Fix town cards when testing
-    # assigned_town_cards = [6, 17, 19]
-    print("Assigned Town Cards are:")
+    assigned_town_cards = [23, 51, 35, 7, 49, 18, 34, 40, 2, 24]
+    print("\nAssigned Town Cards are:")
     print(assigned_town_cards)
 
     # Assigning entry/exit cards, allowing for both to be the same
     assigned_entry_cards = random.choices(entry_cards, k=2);
     # Fix entry cards when testing
-    # assigned_entry_cards = [5, 5]
-    print("Assigned Entry Cards are:")
+    assigned_entry_cards = [31, 39]
+    print("\nAssigned Entry Cards are:")
     print(assigned_entry_cards)
 
     # Combining the above to give the dealt hand
     dealt_hand = np.hstack((assigned_entry_cards, assigned_town_cards))
-    print("Dealt hand is:")
+    print("\nDealt hand is:")
     print(dealt_hand)
 
     # Create the graph G with nodes from town_cards and entry_cards, as well as the edge weights defined in sym.csv
@@ -113,7 +113,7 @@ else:
 
     # Output the data from distances to a csv file
     dataframe = pd.DataFrame(distances) 
-    dataframe.to_csv(r"distances.csv")
+    dataframe.to_csv(r"distances.csv", header=False, index=False)
 
     # List all permutations of assigned_town_cards
     possible_town_routes = list(permutations(assigned_town_cards));
@@ -135,12 +135,12 @@ else:
 
     # Calculate total route length for all possible routes
     route_lengths = []
-    for i in range(0, all_possible_routes.shape[0]-1):
-        for j in range(0, all_possible_routes.shape[1]-1):
-            route_lengths.append(distances[ all_possible_routes[i,j]-1, all_possible_routes[i,(j+1)]-1 ])
+    for i in range(all_possible_routes.shape[0]):
+        for j in range(all_possible_routes.shape[1]-1):
+            route_lengths.append(distances[all_possible_routes[i,j]-1, all_possible_routes[i,(j+1)]-1 ])
 
     # Reshaping route lengths into an array, one row for each route. Each number represents distance from one town ot the next
-    route_lengths = np.reshape(route_lengths, newshape=((all_possible_routes.shape[0]-1), all_possible_routes.shape[1]-1));
+    route_lengths = np.reshape(route_lengths, newshape=((all_possible_routes.shape[0]), all_possible_routes.shape[1]-1));
     # print(route_lengths)
 
     # Summing these numbers together to get the route length for each possible route
@@ -153,23 +153,20 @@ else:
 
     # print(min_indices)
 
-    print("Shortest route/s for dealt cards:")
-
     # Locating the shortest route/s in all_possible_routes from the indix/indicies above, shown by the order in which the assigned town cards should be visited.
     routes_to_take = [];
     for i in range(0, (len(min_indices))):
         routes_to_take.append(all_possible_routes[min_indices[i]]);
 
     routes_to_take = np.asarray(routes_to_take);
-    print(routes_to_take)
 
     # Printing the route length for these routes. As the route length is the same for all instances, only the first needs printing
-    print("Route length:")
+    print("\nOptimal route length:")
     print(route_lengths[min_indices[0]]);
 
     # Get a more detailed list of route to follow, by showing all towns visited in between assigned town cards from all_shortest_paths and routes_to_take. Tricky part is getting correct index in the list all_shortest_paths
     # detailed_routes_to_take = assigned_entry_cards[0];
-    lists = [[assigned_entry_cards[0]] for _ in range(0,len(min_indices))]
+    lists = [[assigned_entry_cards[0]] for _ in range(len(min_indices))]
     for i in range(0, len(min_indices)):
         for j in range(0, len(routes_to_take[i])-1):
             # .copy() is used here so that no changes are made to all_shortest_paths.
@@ -178,14 +175,15 @@ else:
             lists[i] += next;
 
     # Removing duplicate lists, in the instance that 2 different ways of visiting town cards ends in the same detailed route. E.g. 39,40,45,33 and 39,45,40,33
-    for i in range(0, len(min_indices)-1):
-        for j in range(0, len(min_indices)-1):
-            if i!=j and lists[i]==lists[j]:
-                lists.remove(lists[i])
-
-    print("Corresponding detailed route/s:")
-    for i in range(0, len(lists)):
-        print(lists[i])
+    for i in range(len(lists)-1, -0, -1):
+        for j in range(len(lists)-2, -1, -1):
+            if (i>j and lists[i]==lists[j]):
+                del lists[i]
+                break;   
+            
+    print("\nOptimal order/s for dealt cards, with corresponding detailed route/s:")
+    for i in range(len(lists)):
+        print(routes_to_take[i], ":", lists[i], "\n")
 
     end = timer()
 
@@ -193,4 +191,15 @@ else:
     time_taken = round((end - start), 5)
 
     print("Time taken:")
-    print(time_taken, "seconds")
+    print(time_taken, "seconds\n")
+    
+    
+    
+# Need to add more error messages for incorrect inputs
+# Add a way to import users hand from an input spreadsheet (csv) to entries of dealt hand, with error cards:
+# - One or more of your entry/exit card choices is not an entry/exit card. Please correct this and try again.
+# - One or more of your town card choices is not a town card. Please correct this and try again.
+# - No repeated town cards are allowed (There are only 1 of each in the game). Please correct this and try again.
+# - You must select a minimum of 2 town cards. Please correct this and try again.
+# - You must selecet exactly 2 entry/exit cards. Please correct this and try again.
+# - You must select a maximum of 10 town cards. Please correct this and try again.
