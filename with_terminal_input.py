@@ -64,55 +64,75 @@ dataframe.to_csv(r"distances.csv", header=False, index=False)
 # Randomly choosing number of town cards from given range
 # number_of_town_cards = random.randint(min_town_cards, max_town_cards);
 
+yes_inputs = ["yes", "ye", "y"];
+no_inputs = ["no", "n"]
+    
 # Get input from the user as a space-separated string
-input_entry = input("Please enter your assigned Entry/Exit Cards: ")
+input_entry = input("Please enter your assigned Entry/Exit Cards, separated by a space: ")
 
-# CHECK INPUT MAKES SENSE: exactly 2, must be in entry_cards. Return relevant error message
-# if necessary
+while True:
+    # CHECK INPUT MAKES SENSE: exactly 2, must be in entry_cards. Return relevant error message if necessary
+    try:
+        input_entry = input_entry.split()
+        assigned_entry_cards = [int(card) for card in input_entry]
 
-input_town = input("Please enter your assigned Town Cards: ")
+        if len(assigned_entry_cards) == 2 and all(card in entry_cards for card in assigned_entry_cards):
+            break
+        else:
+            print("Invalid input. Players must have exactly 2 Entry/Exit cards.")
+    except:
+        print("Invalid input. Please enter numbers only")
+        input_entry = input("Please enter your assigned Entry/Exit Cards, separated by a space: ")
+        continue  # This will go back to the beginning of the loop
 
-# CHECK INPUT MAKES SENSE: no duplicates, must be in town_cards. Return relevant error message
-# if necessary
+# Get input from the user as a space-separated string
+input_town = input("Please enter your assigned Town Cards, separated by a space: ")
+
+while True:
+    # CHECK INPUT MAKES SENSE: no duplicates, must be in town_cards. Return relevant error message if necessary
+    input_town = input_town.split()
+    assigned_town_cards = [int(element) for element in input_town]
+
+    if len(set(assigned_town_cards)) == len(assigned_town_cards) and all(card in town_cards for card in assigned_town_cards):
+        break
+    else:
+        print("Invalid input. Please enter non-duplicate town cards from the provided list.")
+        input_town = input("Please enter your assigned Town Cards, separated by a space: ")
+
+    number_of_town_cards = len(assigned_town_cards)
+
+    # Assigning town cards
+    # assigned_town_cards = random.sample(town_cards, number_of_town_cards);
+    # Fix town cards when testing
+    # assigned_town_cards = [23, 51, 35, 7, 49, 18, 34, 40, 2, 24]
+    print("\nAssigned Town Cards are:")
+    print(assigned_town_cards)
+
+    # Assigning entry/exit cards, allowing for both to be the same
+    # assigned_entry_cards = random.choices(entry_cards, k=2);
+    # Fix entry cards when testing
+    # assigned_entry_cards = [31, 39]
+    print("\nAssigned Entry Cards are:")
+    print(assigned_entry_cards)
+
+    # Combining the above to give the dealt hand
+    dealt_hand = np.hstack((assigned_entry_cards, assigned_town_cards))
+    print("\nDealt hand is:")
+    print(dealt_hand)
+
+    input_check = input("Is the above information correct? Please type YES or NO: ")
+
+    if input_check.lower() in yes_inputs:
+        print("that is fine")
+    elif input_check.lower() in no_inputs:
+        print('user typed no')
+    else:
+        print('Type yes or no')
+        continue
+
 
 # Start timer, to see how long running the code takes
 start = timer()
-
-# Split the input string into a list of strings
-input_entry = input_entry.split()
-
-# Convert the list of strings to a list of integers
-assigned_entry_cards = [int(element) for element in input_entry]
-
-# Get input from the user as a space-separated string
-
-
-# Split the input string into a list of strings
-input_town = input_town.split()
-
-# Convert the list of strings to a list of integers
-assigned_town_cards = [int(element) for element in input_town]
-
-number_of_town_cards = len(assigned_town_cards)
-
-# Assigning town cards
-# assigned_town_cards = random.sample(town_cards, number_of_town_cards);
-# Fix town cards when testing
-# assigned_town_cards = [23, 51, 35, 7, 49, 18, 34, 40, 2, 24]
-print("\nAssigned Town Cards are:")
-print(assigned_town_cards)
-
-# Assigning entry/exit cards, allowing for both to be the same
-# assigned_entry_cards = random.choices(entry_cards, k=2);
-# Fix entry cards when testing
-# assigned_entry_cards = [31, 39]
-print("\nAssigned Entry Cards are:")
-print(assigned_entry_cards)
-
-# Combining the above to give the dealt hand
-dealt_hand = np.hstack((assigned_entry_cards, assigned_town_cards))
-print("\nDealt hand is:")
-print(dealt_hand)
 
 # Print a line telling the user of the running time, in the case that the running time is more than a few seconds
 if len(assigned_town_cards) == 9:
