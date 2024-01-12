@@ -38,8 +38,8 @@ else:
     town_cards = [i for i in all_cards if i not in entry_cards]
 
     # Setting range of number of town cards
-    min_town_cards = 10
-    max_town_cards = 10
+    min_town_cards = 9
+    max_town_cards = 9
 
     # Randomly choosing number of town cards from given range
     number_of_town_cards = random.randint(min_town_cards, max_town_cards);
@@ -47,14 +47,14 @@ else:
     # Assigning town cards
     assigned_town_cards = random.sample(town_cards, number_of_town_cards);
     # Fix town cards when testing
-    assigned_town_cards = [23, 51, 35, 7, 49, 18, 34, 40, 2, 24]
+    # assigned_town_cards = [23, 51, 35, 7, 49, 18, 34, 40, 2, 24]
     print("\nAssigned Town Cards are:")
     print(assigned_town_cards)
 
     # Assigning entry/exit cards, allowing for both to be the same
     assigned_entry_cards = random.choices(entry_cards, k=2);
     # Fix entry cards when testing
-    assigned_entry_cards = [31, 39]
+    # assigned_entry_cards = [31, 39]
     print("\nAssigned Entry Cards are:")
     print(assigned_entry_cards)
 
@@ -62,7 +62,15 @@ else:
     dealt_hand = np.hstack((assigned_entry_cards, assigned_town_cards))
     print("\nDealt hand is:")
     print(dealt_hand)
-
+    
+    # Print a line telling the user of the running time, in the case that the running time is more than a few seconds
+    if len(assigned_town_cards) == 9:
+        print("\nEstimated running time: 4 seconds")
+    if len(assigned_town_cards) == 10:
+        print("\nEstimated running time: 45 seconds")
+    if len(assigned_town_cards) == 11:
+        print("\nEstimated running time: 6 minutes")
+        
     # Create the graph G with nodes from town_cards and entry_cards, as well as the edge weights defined in sym.csv
     G = nx.from_numpy_array(edge_weights_matrix);
 
