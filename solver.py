@@ -81,7 +81,7 @@ def validate_inputs():
 
             if not all(card in all_cards for card in assigned_entry_cards):
                 print(
-                    "\nInvalid input. Entry/Exit cards must be between 5 and 50 (inclusive).")
+                    "\nInvalid input. Entry/Exit cards must be between {} and {} (inclusive).".format(min(entry_cards), max(entry_cards)))
                 raise ValueError("Entry/Exit cards out of range")
 
             if (not all(card in entry_cards for card in assigned_entry_cards)) and all(card in all_cards for card in assigned_entry_cards):
@@ -116,7 +116,7 @@ def validate_inputs():
 
             if not all(card in all_cards for card in assigned_town_cards):
                 print(
-                    "\nInvalid input. Town cards must be between 1 and 52 (inclusive).")
+                    "\nInvalid input. Town cards must be between {} and {} (inclusive).".format(min(town_cards), max(town_cards)))
                 raise ValueError("Town cards out of range")
 
             if (not all(card in town_cards for card in assigned_town_cards)) and all(card in all_cards for card in assigned_town_cards):
@@ -164,12 +164,9 @@ def check_cards():
         if input_check.lower() in yes_inputs:
             break
         elif input_check.lower() in no_inputs:
-            validate_inputs()
-            print_cards()
-            check_cards()
-            too_many_cards()
-            calculate_route()
-        continue
+            run_program()
+        else:
+            continue
 
 
 def too_many_cards():
@@ -184,15 +181,11 @@ def too_many_cards():
         while True:
             if len(assigned_town_cards) > 11:
                 too_many_cards_check = input(
-                    "\nYou have entered {} town cards. This may lead to a run time of several hours and/or the program terminating due to lack of memory. Do you wish to continue?\nPlease type YES or NO: ".format(len(assigned_town_cards)))
+                    "\nYou have entered {} town cards. This may lead to a run time of several hours and/or the program terminating due to lack of memory.\nDo you wish to continue?\nPlease type YES or NO: ".format(len(assigned_town_cards)))
                 if too_many_cards_check.lower() in yes_inputs:
                     break
                 elif too_many_cards_check.lower() in no_inputs:
-                    validate_inputs()
-                    print_cards()
-                    check_cards()
-                    too_many_cards()
-                    calculate_route()
+                    run_program()
                 else:
                     continue
 
@@ -276,19 +269,17 @@ def calculate_route():
 
 
 def run_program():
-    while True:
-        validate_inputs()
-        print_cards()
-        input_check = input(
-            "\nIs the above information correct?\nPlease type YES or NO: ")
-        if input_check.lower() in yes_inputs:
-            break
-        elif input_check.lower() in no_inputs:
-            continue  # Restart the loop
-        else:
-            print("\nInvalid input. Please type YES or NO.")
+    validate_inputs()
+    print_cards()
+    check_cards()
     too_many_cards()
     calculate_route()
 
-
 run_program()
+
+# def run_program():
+#     validate_inputs()
+#     print_cards()
+#     check_cards()
+#     too_many_cards()
+#     calculate_route()
