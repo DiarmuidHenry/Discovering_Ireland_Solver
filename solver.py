@@ -12,6 +12,7 @@ import pandas as pd
 
 print("\nLoading initial data...")
 
+# List of town names, in oder
 town_names = [
     "Ballycastle",
     "Coleraine",
@@ -67,6 +68,11 @@ town_names = [
     "Clonakilty"
 ]
 
+# List of all entry/exit cards. Must be manually enterred
+entry_cards = [
+    5, 9, 31, 39, 47, 50
+]
+
 # Spreadsheet of paths to neighbouring towns into a pandas DataFrame
 df = pd.read_csv("counted_distances.csv", header=None)
 
@@ -78,11 +84,6 @@ number_of_towns = edge_weights_matrix.shape[0]
 
 # Construct list of all cards, labelled by their corresponding numbers
 all_cards = list(range(1, number_of_towns + 1))
-
-# List of all entry/exit cards. Must be manually enterred
-entry_cards = [
-    5, 9, 31, 39, 47, 50
-]
 
 # List of all town cards, which is all_cards with entry_cards removed
 town_cards = [i for i in all_cards if i not in entry_cards]
@@ -97,6 +98,7 @@ print("\nCalculating distance between all pairs of towns...")
 # Nodes: town_cards, entry_cards. Edge weights: counted_distances.csv
 G = nx.from_numpy_array(edge_weights_matrix)
 
+# Reindexing so that town number matches index
 G = nx.convert_node_labels_to_integers(G, 1)
 
 # Lists all pairs of nodes; length of path between them; route taken.
@@ -217,11 +219,11 @@ def print_cards():
 def check_cards():
     while True:
         input_check = input(
-            "\nIs the above information correct?\nPlease type YES or NO: ")
+            "\nIs the above information correct?\nPlease type YES or NO:")
         if input_check.lower() in yes_inputs:
-            break
+            return True
         elif input_check.lower() in no_inputs:
-            run_program()
+            return False
         else:
             continue
 
@@ -230,21 +232,23 @@ def too_many_cards():
     # Inform user of a possible longer running time.
     if len(assigned_town_cards) == 9:
         print("\n\nEstimated running time: 4 seconds")
+        return True
     if len(assigned_town_cards) == 10:
         print("\n\nEstimated running time: 45 seconds")
+        return True
     if len(assigned_town_cards) == 11:
         print("\n\nEstimated running time: 6 minutes")
+        return True
     if len(assigned_town_cards) > 11:
         while True:
-            if len(assigned_town_cards) > 11:
-                too_many_cards_check = input(
-                    "\nYou have entered {} town cards. This may lead to a run time of several hours and/or the program terminating due to lack of memory.\nDo you wish to continue?\nPlease type YES or NO: ".format(len(assigned_town_cards)))
-                if too_many_cards_check.lower() in yes_inputs:
-                    break
-                elif too_many_cards_check.lower() in no_inputs:
-                    run_program()
-                else:
-                    continue
+            too_many_cards_check = input(
+                "\nYou have entered {} town cards. This may lead to a run time of several hours and/or the program terminating due to lack of memory.\nDo you wish to continue?\nPlease type YES or NO: ".format(len(assigned_town_cards)))
+            if too_many_cards_check.lower() in yes_inputs:
+                return True
+            elif too_many_cards_check.lower() in no_inputs:
+                return False
+            else:
+                continue
 
 
 def calculate_route():
@@ -332,15 +336,13 @@ def calculate_route():
 def run_program():
     validate_inputs()
     print_cards()
-    check_cards()
-    too_many_cards()
-    calculate_route()
+    if check_cards():
+        if too_many_cards():
+            calculate_route()
+        else:
+            run_program()
+    else:
+        run_program()
+    
 
 run_program()
-
-# def run_program():
-#     validate_inputs()
-#     print_cards()
-#     check_cards()
-#     too_many_cards()
-#     calculate_route()
