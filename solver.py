@@ -229,7 +229,8 @@ def check_cards():
 
 
 def too_many_cards():
-    # Inform user of a possible longer running time.
+    if len(assigned_town_cards) < 9:
+        return True
     if len(assigned_town_cards) == 9:
         print("\n\nEstimated running time: 4 seconds")
         return True
@@ -316,20 +317,28 @@ def calculate_route():
                 del lists[i]
                 break
 
-    print("\nOptimal order/s for dealt cards, with corresponding detailed route/s:")
+    print("\nOptimal route/s for dealt cards:")
     for i in range(len(lists)):
-        print(routes_to_take[i], ":", lists[i], "\n")
+        print("\n\n\nRoute ", i + 1, "\n")
+        # print(routes_to_take[i], ":", lists[i], "\n")
         for j in range(len(lists[i])):
-            # Routes printed including town names:
-            print(lists[i][j], ":", town_names[lists[i][j]-1])
-            # Get first appearance of each card in dealt_hand to be starreed/highlighted
+            assigned_town_cards_copy = assigned_town_cards.copy()
+            if j == 0 or j == (len(lists[i]) - 1) or (lists[i][j] in assigned_town_cards_copy):
+                print("**** ", lists[i][j], ":", town_names[lists[i][j]-1],)
+                assigned_town_cards_copy = [card for card in assigned_town_cards_copy if card != lists[i][j]]
+            else:
+                print("     ",lists[i][j], ":", town_names[lists[i][j]-1])
+                
+            
+            
+                
 
     end = timer()
 
     # Time taken shown in seconds to 5sf
     time_taken = round((end - start), 5)
 
-    print("Time taken to calculate route:")
+    print("\n\nTime taken to calculate route/s:")
     print(time_taken, "seconds\n")
 
 
