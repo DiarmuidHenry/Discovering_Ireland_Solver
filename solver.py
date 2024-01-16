@@ -12,6 +12,61 @@ import pandas as pd
 
 print("\nLoading initial data...")
 
+town_names = [
+    "Ballycastle",
+    "Coleraine",
+    "Derry",
+    "Letterkenny",
+    "Larne",
+    "Ballymena",
+    "Strabane",
+    "Donegal",
+    "Belfast",
+    "Omagh",
+    "Armagh",
+    "Enniskillen",
+    "Sligo",
+    "Belmullet",
+    "Monaghan",
+    "Ballina",
+    "Newry",
+    "Cavan",
+    "Dundalk",
+    "Carrick on Shannon",
+    "Westport",
+    "Knock",
+    "Longford",
+    "Drogheda",
+    "Roscommon",
+    "Trim",
+    "Mullingar",
+    "Clifden",
+    "Athlone",
+    "Ballinasloe",
+    "Dublin",
+    "Tullamore",
+    "Galway",
+    "Naas",
+    "Portlaoise",
+    "Roscrea",
+    "Tullow",
+    "Arklow",
+    "Shannon",
+    "Limerick",
+    "Kilkenny",
+    "Tipperary",
+    "Clonmel",
+    "Wexford",
+    "Tralee",
+    "Waterford",
+    "Rosslare Harbour",
+    "Killarney",
+    "Youghal",
+    "Cork",
+    "Bantry",
+    "Clonakilty"
+]
+
 # Spreadsheet of paths to neighbouring towns into a pandas DataFrame
 df = pd.read_csv("counted_distances.csv", header=None)
 
@@ -258,6 +313,10 @@ def calculate_route():
     print("\nOptimal order/s for dealt cards, with corresponding detailed route/s:")
     for i in range(len(lists)):
         print(routes_to_take[i], ":", lists[i], "\n")
+        print("with town names")
+        for j in range(len(lists[i])):
+        # Routes printed including town names:
+            print(lists[i][j], ":", town_names[lists[i][j]-1])
 
     end = timer()
 
