@@ -1,3 +1,7 @@
+print("\nLoading initial data...")
+
+
+
 import pandas as pd
 import numpy as np
 import random
@@ -7,23 +11,20 @@ import itertools
 from itertools import permutations
 import sys
 import array
+import string
 from timeit import default_timer as timer
-
-# Start timer, to see how long running the code takes
-start = timer()
 
 # Read the spreadsheet of paths to neighbouring towns into a pandas DataFrame
 df = pd.read_csv("counted_distances.csv", header=None)  
 
 # Convert the DataFrame to a NumPy array
 edge_weights_matrix = df.values
-# Getting number of town cards from size of edge_weight_matrix
-
 # Now, edge_weights_matrix contains the numerical values from the spreadsheet as a NumPy array
 
-# Construct list of all cards, labelled by their corresponding numbers
+# Getting number of town cards from size of edge_weight_matrix
 number_of_towns = edge_weights_matrix.shape[0];
 
+# Construct list of all cards, labelled by their corresponding numbers
 all_cards = list(range(1, number_of_towns + 1));
 
 # List of all entry/exit cards. Must be manually enterred
@@ -34,9 +35,15 @@ entry_cards = [
 # List of all town cards, which is all_cards with entry_cards removed
 town_cards = [i for i in all_cards if i not in entry_cards]
 
+# Declare assigned card variables in global scope
+assigned_town_cards = []
+assigned_entry_cards = []
+dealt_hand = []
+
 # Create the graph G with nodes from town_cards and entry_cards, as well as the edge weights defined in sym.csv
 G = nx.from_numpy_array(edge_weights_matrix);
 
+print("\nCalculating distance between all pairs of towns...")
 # Lists all pairs of nodes; length of path between them; route taken.
 distances = []
 all_shortest_paths = []
@@ -47,90 +54,118 @@ for i in G.nodes :
 
 # Reshape distances into a square array, easier to find relevant distances using indices
 distances = np.reshape(distances, newshape=(len(all_cards),len(all_cards)));
-# print(distances)
-# print(len(all_shortest_paths))
-# print(all_shortest_paths)
+
 
 dataframe = pd.DataFrame(distances) 
 dataframe.to_csv(r"distances.csv", header=False, index=False)
 
-# Relabel nodes in G, only relevant for physical plotting of graph
-# G = nx.convert_node_labels_to_integers(G, 1)
-
-# Setting range of number of town cards
-# min_town_cards = 9
-# max_town_cards = 9
-
-# Randomly choosing number of town cards from given range
-# number_of_town_cards = random.randint(min_town_cards, max_town_cards);
 
 yes_inputs = ["yes", "ye", "y"];
 no_inputs = ["no", "n"]
+
+def validate_inputs():
     
-# Get input from the user as a space-separated string
-input_entry = input("Please enter your assigned Entry/Exit Cards, separated by a space: ")
+    global assigned_town_cards, assigned_entry_cards
+    # Get input from the user as a space-separated string
+    input_entry = input("\nPlease enter your assigned Entry/Exit Cards, separated by a space: ")
 
-while True:
-    # CHECK INPUT MAKES SENSE: exactly 2, must be in entry_cards. Return relevant error message if necessary
-    try:
-        input_entry = input_entry.split()
-        assigned_entry_cards = [int(card) for card in input_entry]
+    while True:
+        # CHECK INPUT MAKES SENSE
+        try:
+            input_entry = input_entry.split()
+            if all(value.isdigit() for value in input_entry):
+                assigned_entry_cards = [int(card) for card in input_entry]
+            else:
+                print("\nInvalid input. Input must only contain spaces and integers.")
+                raise ValueError("Invalid input format")  
 
-        if len(assigned_entry_cards) == 2 and all(card in entry_cards for card in assigned_entry_cards):
-            break
-        else:
-            print("Invalid input. Players must have exactly 2 Entry/Exit cards.")
-    except:
-        print("Invalid input. Please enter numbers only")
-        input_entry = input("Please enter your assigned Entry/Exit Cards, separated by a space: ")
-        continue  # This will go back to the beginning of the loop
+            if not all(card in all_cards for card in assigned_entry_cards):
+                print("\nInvalid input. Entry/Exit cards must be between 5 and 50 (inclusive).")
+                raise ValueError("Entry/Exit cards out of range") 
 
-# Get input from the user as a space-separated string
-input_town = input("Please enter your assigned Town Cards, separated by a space: ")
+            if (not all(card in entry_cards for card in assigned_entry_cards)) and all(card in all_cards for card in assigned_entry_cards):
+                print("\nInvalid input. Please enter only your Entry/Exit cards. Do not include any Town cards.")
+                raise ValueError("Town cards entered instead of Entry/Exit cards")  
 
-while True:
-    # CHECK INPUT MAKES SENSE: no duplicates, must be in town_cards. Return relevant error message if necessary
-    input_town = input_town.split()
-    assigned_town_cards = [int(element) for element in input_town]
+            if len(assigned_entry_cards) != 2:
+                print("\nInvalid input. Players must have exactly 2 Entry/Exit cards.")
+                raise ValueError("Incorrect number of Entry/Exit cards")  
 
-    if len(set(assigned_town_cards)) == len(assigned_town_cards) and all(card in town_cards for card in assigned_town_cards):
-        break
-    else:
-        print("Invalid input. Please enter non-duplicate town cards from the provided list.")
-        input_town = input("Please enter your assigned Town Cards, separated by a space: ")
+            # If input passes all of the above, it will break out of the loop
+            break 
 
-    number_of_town_cards = len(assigned_town_cards)
+        except ValueError:
+            input_entry = input("\n\nPlease enter your assigned Entry/Exit Cards, separated by a space: ")
+            continue  # Back to the beginning of the loop
 
-    # Assigning town cards
-    # assigned_town_cards = random.sample(town_cards, number_of_town_cards);
-    # Fix town cards when testing
-    # assigned_town_cards = [23, 51, 35, 7, 49, 18, 34, 40, 2, 24]
+    # Get input from the user as a space-separated string
+    input_town = input("\n\nPlease enter your assigned Town Cards, separated by a space: ")
+
+    while True:
+        # CHECK INPUT MAKES SENSE
+        try:
+            input_town = input_town.split()
+            if all(value.isdigit() for value in input_town):
+                assigned_town_cards = [int(card) for card in input_town]
+            else:
+                print("\nInvalid input. Input must only contain spaces and integers.")
+                raise ValueError("Invalid input format")  
+
+            if not all(card in all_cards for card in assigned_town_cards):
+                print("\nInvalid input. Town cards must be between 1 and 52 (inclusive).")
+                raise ValueError("Entry/Exit cards out of range") 
+
+            if (not all(card in town_cards for card in assigned_town_cards)) and all(card in all_cards for card in assigned_town_cards):
+                print("\nInvalid input. Please enter only your Town cards. Do not include any Entry/Exit cards.")
+                raise ValueError("Town cards entered instead of Entry/Exit cards")  
+
+            if len(assigned_town_cards) not in range(1,11):
+                print("\nInvalid input. Players must have between 1 and 10 Town cards.")
+                raise ValueError("Incorrect number of Entry/Exit cards")
+            
+            if len(input_town) != len(set(input_town)):
+                print("\nInvalid input, duplicate/s found.")
+                raise ValueError("Duplicate card/s found")
+
+            # If input passes all of the above, it will break out of the loop
+            break 
+
+        except ValueError:
+            input_town = input("\n\nPlease enter your assigned Town Cards, separated by a space: ")
+            continue  # Back to the beginning of the loop
+        
+        
+def print_cards():
+
+    global dealt_hand, assigned_town_cards, assigned_entry_cards
+
+    dealt_hand = np.hstack((assigned_entry_cards, assigned_town_cards))
+    
     print("\nAssigned Town Cards are:")
     print(assigned_town_cards)
-
-    # Assigning entry/exit cards, allowing for both to be the same
-    # assigned_entry_cards = random.choices(entry_cards, k=2);
-    # Fix entry cards when testing
-    # assigned_entry_cards = [31, 39]
+    
     print("\nAssigned Entry Cards are:")
     print(assigned_entry_cards)
 
     # Combining the above to give the dealt hand
-    dealt_hand = np.hstack((assigned_entry_cards, assigned_town_cards))
     print("\nDealt hand is:")
     print(dealt_hand)
+    
+    
+validate_inputs()
 
-    input_check = input("Is the above information correct? Please type YES or NO: ")
+print_cards()
+
+while True:
+    input_check = input("\nIs the above information correct?\nPlease type YES or NO: ")
 
     if input_check.lower() in yes_inputs:
-        print("that is fine")
+        break
     elif input_check.lower() in no_inputs:
-        print('user typed no')
-    else:
-        print('Type yes or no')
-        continue
-
-
+        validate_inputs()
+        print_cards()
+    continue
+        
 # Start timer, to see how long running the code takes
 start = timer()
 
@@ -144,39 +179,6 @@ if len(assigned_town_cards) == 11:
     
 
 
-# Checking the graph is the right size
-# print("Number of nodes in G:")
-# print(G.number_of_nodes());
-# print("Number of edges in G:");
-# print(G.number_of_edges());
-
-# Checking the shortest path length/weight function on a path between 2 nodes
-# a = (random.choice(all_cards));
-# b = (random.choice(all_cards));
-# print(a,b);
-# print("Shortest path from", a, "to", b, ":");
-# print(nx.shortest_path(G, a, b, weight="weight"));
-# print("Path length:");
-# print(nx.shortest_path_length(G, a, b, weight="weight"))
-
-# Draw graph representation of G
-# layout = nx.spring_layout(G)
-# nx.draw(G, layout);
-# labels = nx.get_edge_attributes(G, "weight");
-# nx.draw_networkx_edge_labels(G, pos=layout, edge_labels=labels);
-# nx.draw_networkx_labels(G, pos=layout)
-# plt.show();
-
-
-
-
-# print(distances.shape[0])
-
-# print(distances.shape[1])
-
-# Output the data from distances to a csv file
-
-
 # List all permutations of assigned_town_cards
 possible_town_routes = list(permutations(assigned_town_cards));
 # print(len(possible_town_routes));
@@ -187,13 +189,6 @@ end_entry = np.full((len(possible_town_routes), 1), assigned_entry_cards[1])
 
 # Stacking the entry and and card arrays with possible routes through town cards, we get all possible full routes
 all_possible_routes = np.hstack((start_entry, possible_town_routes, end_entry))
-
-# print("all possible routes:")
-# print(all_possible_routes)
-
-# print(all_possible_routes.shape[0])
-
-# print(all_possible_routes.shape[1])
 
 # Calculate total route length for all possible routes
 route_lengths = []
