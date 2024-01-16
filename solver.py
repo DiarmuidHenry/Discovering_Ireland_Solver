@@ -97,6 +97,8 @@ print("\nCalculating distance between all pairs of towns...")
 # Nodes: town_cards, entry_cards. Edge weights: counted_distances.csv
 G = nx.from_numpy_array(edge_weights_matrix)
 
+G = nx.convert_node_labels_to_integers(G, 1)
+
 # Lists all pairs of nodes; length of path between them; route taken.
 distances = []
 all_shortest_paths = []
@@ -269,7 +271,7 @@ def calculate_route():
     for i in range(all_possible_routes.shape[0]):
         for j in range(all_possible_routes.shape[1]-1):
             route_lengths.append(
-                distances[all_possible_routes[i, j]-1, all_possible_routes[i, (j+1)]-1])
+                distances[all_possible_routes[i, j]-1, all_possible_routes[i,(j+1)]-1])
 
     # Reshaping route lengths into an array, one row for each route.
     route_lengths = np.reshape(route_lengths, newshape=(
@@ -295,8 +297,8 @@ def calculate_route():
 
     # Complie all towns visited from all_shortest_paths and routes_to_take.
     lists = [[assigned_entry_cards[0]] for _ in range(len(min_indices))]
-    for i in range(0, len(min_indices)):
-        for j in range(0, len(routes_to_take[i])-1):
+    for i in range(len(min_indices)):
+        for j in range(len(routes_to_take[i])-1):
             # .copy() is used here so that no changes are made to all_shortest_paths.
             next = all_shortest_paths[(
                 routes_to_take[i][j] - 1)*len(all_cards) + routes_to_take[i][j+1] - 1].copy()
@@ -313,10 +315,10 @@ def calculate_route():
     print("\nOptimal order/s for dealt cards, with corresponding detailed route/s:")
     for i in range(len(lists)):
         print(routes_to_take[i], ":", lists[i], "\n")
-        print("with town names")
         for j in range(len(lists[i])):
-        # Routes printed including town names:
+            # Routes printed including town names:
             print(lists[i][j], ":", town_names[lists[i][j]-1])
+            # Get first appearance of each card in dealt_hand to be starreed/highlighted
 
     end = timer()
 
