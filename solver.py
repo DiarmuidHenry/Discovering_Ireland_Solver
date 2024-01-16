@@ -12,12 +12,11 @@ import array
 import string
 from timeit import default_timer as timer
 
-# Read the spreadsheet of paths to neighbouring towns into a pandas DataFrame
+# Spreadsheet of paths to neighbouring towns into a pandas DataFrame
 df = pd.read_csv("counted_distances.csv", header=None)  
 
 # Convert the DataFrame to a NumPy array
 edge_weights_matrix = df.values
-# Now, edge_weights_matrix contains the numerical values from the spreadsheet as a NumPy array
 
 # Getting number of town cards from size of edge_weight_matrix
 number_of_towns = edge_weights_matrix.shape[0];
@@ -40,7 +39,7 @@ dealt_hand = []
 
 print("\nCalculating distance between all pairs of towns...")
 
-# Create the graph G with nodes from town_cards and entry_cards, as well as the edge weights defined in counted_distances.csv
+# Nodes: town_cards, entry_cards. Edge weights: counted_distances.csv
 G = nx.from_numpy_array(edge_weights_matrix);
 
 # Lists all pairs of nodes; length of path between them; route taken.
@@ -51,13 +50,13 @@ for i in G.nodes :
         all_shortest_paths.append(nx.shortest_path(G, source=i, target=j, weight="weight"));
         distances.append(nx.shortest_path_length(G, i, j, weight="weight"));
 
-# Reshape distances into a square array, easier to find relevant distances using indices
+# Reshape distances into a square array.
 distances = np.reshape(distances, newshape=(len(all_cards),len(all_cards)));
 
 dataframe = pd.DataFrame(distances) 
 dataframe.to_csv(r"distances.csv", header=False, index=False)
 
-# List acceptable inputs when YES or NO should be provided. Both upper and lower case will be accepted.
+# List acceptable inputs when YES or NO should be provided.
 yes_inputs = ["yes", "ye", "y"];
 no_inputs = ["no", "n"]
 
@@ -88,8 +87,6 @@ def validate_inputs():
             if len(assigned_entry_cards) != 2:
                 print("\nInvalid input. Players must have exactly 2 Entry/Exit cards.")
                 raise ValueError("Incorrect number of Entry/Exit cards")  
-
-            # If input passes all of the above, it will break out of the loop
             break 
 
         except ValueError:
@@ -124,8 +121,6 @@ def validate_inputs():
             if len(input_town) != len(set(input_town)):
                 print("\nInvalid input, duplicates found.")
                 raise ValueError("Duplicate cards found")
-
-            # If input passes all of the above, it will break out of the loop
             break 
 
         except ValueError:
@@ -162,7 +157,7 @@ def check_cards():
         continue
     
 def too_many_cards():
-    # Print a line telling the user of the running time, in the case that the running time is more than a few seconds
+    # Inform user of a possible longer running time.
     if len(assigned_town_cards) == 9:
         print("\n\nEstimated running time: 4 seconds")
     if len(assigned_town_cards) == 10:
@@ -185,55 +180,49 @@ def too_many_cards():
                     continue
 
 def calculate_route():
-    # Start timer, to see how long running the code takes
+    # Start timer
     start = timer()    
 
     print("\n\nCalculating route...")
 
     # List all permutations of assigned_town_cards
     possible_town_routes = list(permutations(assigned_town_cards));
-    # print(len(possible_town_routes));
 
     # Create start and end card arrays, 
     start_entry = np.full((len(possible_town_routes), 1), assigned_entry_cards[0])
     end_entry = np.full((len(possible_town_routes), 1), assigned_entry_cards[1])
 
-    # Stacking the entry and and card arrays with possible routes through town cards, we get all possible full routes
+    # Stacking the previous to get all possible valid routes.
     all_possible_routes = np.hstack((start_entry, possible_town_routes, end_entry))
 
-    # Calculate total route length for all possible routes
+    # Calculate total route length for each route.
     route_lengths = []
     for i in range(all_possible_routes.shape[0]):
         for j in range(all_possible_routes.shape[1]-1):
             route_lengths.append(distances[all_possible_routes[i,j]-1, all_possible_routes[i,(j+1)]-1 ])
 
-    # Reshaping route lengths into an array, one row for each route. Each number represents distance from one town ot the next
-    route_lengths = np.reshape(route_lengths, newshape=((all_possible_routes.shape[0]), all_possible_routes.shape[1]-1));
-    # print(route_lengths)
+    # Reshaping route lengths into an array, one row for each route.
+    route_lengths = np.reshape(route_lengths, newshape=((all_possible_routes.shape[0]), all_possible_routes.shape[1]-1))
 
-    # Summing these numbers together to get the route length for each possible route
+    # Summing each row to get route length for each route
     route_lengths = np.sum(route_lengths,axis=1)
-    # print(route_lengths)
 
     # Finding the minimum route length, and its corresponding index
     min_length = np.min(route_lengths)
     min_indices = [i for i, x in enumerate(route_lengths) if x == min_length]
 
-    # print(min_indices)
-
-    # Locating the shortest route/s in all_possible_routes from the indix/indicies above, shown by the order in which the assigned town cards should be visited.
+    # Find shortest route/s in all_possible_routes using min_indicies.
     routes_to_take = [];
     for i in range(0, (len(min_indices))):
         routes_to_take.append(all_possible_routes[min_indices[i]]);
 
     routes_to_take = np.asarray(routes_to_take);
 
-    # Printing the route length for these routes. As the route length is the same for all instances, only the first needs printing
+    # Printing the route length for the/se route/s.
     print("\n\nOptimal route length:")
     print(route_lengths[min_indices[0]]);
 
-    # Get a more detailed list of route to follow, by showing all towns visited in between assigned town cards from all_shortest_paths and routes_to_take. Tricky part is getting correct index in the list all_shortest_paths
-    # detailed_routes_to_take = assigned_entry_cards[0];
+    # Complie all towns visited from all_shortest_paths and routes_to_take.
     lists = [[assigned_entry_cards[0]] for _ in range(len(min_indices))]
     for i in range(0, len(min_indices)):
         for j in range(0, len(routes_to_take[i])-1):
@@ -242,7 +231,7 @@ def calculate_route():
             next.pop(0);
             lists[i] += next;
 
-    # Removing duplicate lists, in the instance that 2 different ways of visiting town cards ends in the same detailed route. E.g. 39,40,45,33 and 39,45,40,33
+    # Remove instances where card order is different but route is same.
     for i in range(len(lists)-1, -0, -1):
         for j in range(len(lists)-2, -1, -1):
             if (i>j and lists[i]==lists[j]):
