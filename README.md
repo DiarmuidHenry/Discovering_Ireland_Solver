@@ -21,6 +21,8 @@ Bugs/fixes:
 - Some of the less obvious paths between adjacent towns were missed when manually counting, e.g. (2,9), (32,39). This meant that resulting shortets paths given seemed odd when the code was run. After spotting these errors, I went back to sym and added in the missed edges.
 - Whilst testing, I realised that I had used non-generic integers whilst doing loops, i.e. instead of using `len(all_cards)`, I had just used `52`, since that was the number I was working with. I made sure to change this, so that a change in the setup of the game (new cards, new board layout) wouldn't lead to problems in executing the program in the future.
 - Since there are 2 of each entry/exit card, I have allowed for both cards to be the same, by changing `random.sample()` (without replacement) to `random.choices()` (with replacement). Since there are only 2 copies of each town card, this will suffice, but would need to be altered if the program would allow for several people choosing cards in a single execution. Another way to fix this would be to make each element in entry_cards appear twice. 
+- When including error messages, I found myself either getting stuck in loops, or jumping over some checks, depending on what/how many loops I was repeating. I solved this breaking the program down into functions, then creating a run_program() function that would neatly organise the logic/flow through the solver.
+
 
 Approach:
 - Create an adjacency matrix/table/array, containing the number of steps between all pairs of adjacent towns.
