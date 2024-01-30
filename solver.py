@@ -10,6 +10,22 @@ import random
 import numpy as np
 import pandas as pd
 
+def print_map():
+    map = open('ireland-map.txt', 'r')
+    map_image = map.read()
+    print (map_image)
+    map.close()
+    
+def print_banner():
+    banner = open('banner-text.txt', 'r')
+    banner_image = banner.read()
+    print (banner_image)
+    banner.close()
+    
+print_map()
+print_banner()
+
+
 print("\nLoading initial data...")
 
 # List of town names, in oder
@@ -329,9 +345,6 @@ def calculate_route():
             else:
                 print("     ",lists[i][j], ":", town_names[lists[i][j]-1])
                 
-            
-            
-                
 
     end = timer()
 
@@ -340,7 +353,18 @@ def calculate_route():
 
     print("\n\nTime taken to calculate route/s:")
     print(time_taken, "seconds\n")
-
+    
+def print_map():
+    map = open('ireland-map.txt', 'r')
+    map_image = map.read()
+    print (map_image)
+    map.close()
+    
+def print_banner():
+    banner = open('banner-text.txt', 'r')
+    banner_image = banner.read()
+    print (banner_image)
+    banner.close()
 
 def run_program():
     validate_inputs()
